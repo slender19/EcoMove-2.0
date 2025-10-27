@@ -44,35 +44,35 @@ export default function AppNavigator() {
         <Stack.Screen
           name="Register"
           component={RegisterScreen}
-          options={{ title: "Registro" }}
+          options={{ headerShown: false }}
         />
 
         {/* DASHBOARD USUARIO */}
         <Stack.Screen
           name="HomeScreen"
           component={HomeScreen}
-          options={{ title: "Ecomove 🚲" }}
+          options={{ headerShown: false }}
         />
 
         {/* DASHBOARD ADMIN */}
         <Stack.Screen
           name="AdminHome"
           component={AdminHomeScreen}
-          options={{ title: "Panel de Administrador" }}
+          options={{ headerShown: false }}
         />
 
         {/* GESTIÓN DE ESTACIONES */}
         <Stack.Screen
           name="StationScreen"
           component={StationScreen}
-          options={{ title: "Gestionar Estaciones" }}
+         options={{ headerShown: false }}
         />
 
         {/* GESTIÓN DE VEHICULOS */}
         <Stack.Screen
           name="VehicleScreen"
           component={VehicleScreen}
-          options={{ title: "Gestionar Vehículos" }}
+          options={{ headerShown: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>

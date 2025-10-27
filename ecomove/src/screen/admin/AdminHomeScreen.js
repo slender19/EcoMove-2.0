@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -6,30 +6,14 @@ import {
   StyleSheet,
   Modal,
 } from "react-native";
+import Header from "../../components/header";
 
 export default function AdminHomeScreen({ navigation }) {
-  const [menuVisible, setMenuVisible] = useState(false);
-
-  const toggleMenu = () => setMenuVisible(!menuVisible);
-
-  const handleLogout = () => {
-    setMenuVisible(false);
-    navigation.replace("Login");
-  };
-
+ 
   return (
+    
     <View style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Panel de Administrador</Text>
-        <TouchableOpacity
-          onPress={toggleMenu}
-          style={styles.profileButton}
-          accessibilityLabel="Abrir menú de perfil"
-        >
-          <Text style={styles.profileText}>👤</Text>
-        </TouchableOpacity>
-      </View>
+    <Header title="Panel de administrador" />
 
       {/* CONTENIDO */}
       <View style={styles.content}>
@@ -47,34 +31,12 @@ export default function AdminHomeScreen({ navigation }) {
           <Text style={styles.buttonText}>Gestionar Vehículos</Text>
         </TouchableOpacity>
       </View>
-
-      {/* MENÚ DESPLEGABLE */}
-      <Modal
-        transparent
-        visible={menuVisible}
-        animationType="fade"
-        onRequestClose={() => setMenuVisible(false)}
-      >
-        <View style={styles.overlay}>
-          <TouchableOpacity
-            style={styles.backdrop}
-            activeOpacity={1}
-            onPressOut={() => setMenuVisible(false)}
-          />
-          <View style={styles.menu}>
-            <Text style={styles.menuTitle}>Admin</Text>
-            <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
-              <Text style={styles.menuItemText}>Cerrar Sesión</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#e8f5e9" },
+  container: { flex: 1, backgroundColor: "#f5f7f4",  },
 
   header: {
     flexDirection: "row",

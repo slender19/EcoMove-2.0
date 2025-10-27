@@ -1,100 +1,231 @@
-import React, { useContext } from "react";
-import { View, Text, FlatList, StyleSheet } from "react-native";
-import { HistorialContext } from "../../components/HistorialContext";
+import React, { useEffect, useState } from "react";
+import { View, Text, FlatList, StyleSheet, ActivityIndicator } from "react-native";
 import Header from "../../components/header";
-import LogoutButton from "../../components/LogoutButton";
-import NavigationMenu from "../../components/NavigationMenu";
-import HistorialCard from "../../components/HistorialCard";
 import Iconos from "../../components/Iconos";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import LoanService from "../../services/LoanService";
 
-export default function Historial( { navigation } ) {
-  const { historial } = useContext(HistorialContext);
+export default function Historial({ navigation }) {
+  const [historial, setHistorial] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchHistorial = async () => {
+      try {
+        const storedUser = await AsyncStorage.getItem("currentUser");
+        if (!storedUser) {
+          console.warn("No hay usuario en sesión");
+          setLoading(false);
+          return;
+        }
+
+        const currentUser = JSON.parse(storedUser);
+        const allLoans = await LoanService.getLoansByUserId(currentUser.id);
+
+        if (Array.isArray(allLoans)) {
+          const sorted = allLoans.sort(
+            (a, b) => new Date(b.fecha_hora_inicio) - new Date(a.fecha_hora_inicio)
+          );
+          setHistorial(sorted);
+        } else {
+          console.warn("El servicio no devolvió un array:", allLoans);
+          setHistorial([]);
+        }
+      } catch (error) {
+        console.error("Error al cargar historial:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHistorial();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#2e7d32" />
+        <Text style={styles.loadingText}>Cargando historial...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <Header title="Ecomove" />
-            <Text style={styles.subtitle}>Navegacion</Text>
-            <View style={styles.menu}>
-              <Iconos
-                nombre="Solicitar"
-                icono="car"
-                color="#4CAF50"
-                onPress={() => navigation.navigate("Solicitar")}
-              />
-              <Iconos
-                nombre="Devolución"
-                imagen="data:image/jpeg;base64,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"
-                color="#2196F3"
-                onPress={() => navigation.navigate("Devolucion")}
-              />
-              <Iconos
-                nombre="HOme"
-                icono="history"
-                color="#FF9800"
-                onPress={() => navigation.navigate("HomeScreen")}
-              />
-            </View>
+      <Header title="Historial" />
+
+      <Text style={styles.subtitle}>Navegación</Text>
+      <View style={styles.menu}>
+        <Iconos
+          nombre="Solicitar"
+          icono="car"
+          color="#4CAF50"
+          onPress={() => navigation.navigate("Solicitar")}
+        />
+        <Iconos
+          nombre="Devolución"
+          icono="undo"
+          color="#2196F3"
+          onPress={() => navigation.navigate("Devolucion")}
+        />
+        <Iconos
+          nombre="Inicio"
+          icono="home"
+          color="#FFB300"
+          onPress={() => navigation.navigate("HomeScreen")}
+        />
+      </View>
 
       {historial.length === 0 ? (
         <Text style={styles.empty}>Aún no tienes viajes registrados.</Text>
       ) : (
         <FlatList
           data={historial}
-          keyExtractor={(_, index) => index.toString()}
+          keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
-            <View style={styles.row}>
-              <Text style={styles.cell}>🚉 {item.origen}</Text>
-              <Text style={styles.cell}>🎯 {item.destino}</Text>
-              <Text style={styles.cell}>📏 {item.distancia}</Text>
-              <Text style={styles.cell}>🛴 {item.transporte}</Text>
-              <Text style={styles.price}>{item.costo}</Text>
+            <View style={styles.card}>
+              {/* Encabezado con estado a la derecha */}
+              <View style={styles.cardHeader}>
+                <Text style={styles.label}>Estación origen:</Text>
+                <Text
+                  style={[
+                    styles.estadoText,
+                    item.estado === "activo"
+                      ? styles.activeStatus
+                      : styles.inactiveStatus,
+                  ]}
+                >
+                  {item.estado === "activo" ? "Activo" : "Inactivo"}
+                </Text>
+              </View>
+              <Text style={styles.value}>{item.estacion_origen || "—"}</Text>
+
+              <Text style={styles.label}>Estación destino:</Text>
+              <Text style={styles.value}>{item.estacion_destino || "—"}</Text>
+
+              <Text style={styles.label}>Fecha y hora de inicio:</Text>
+              <Text style={styles.value}>
+                {new Date(item.fecha_hora_inicio).toLocaleString("es-CO")}
+              </Text>
+
+              {item.fecha_hora_fin && (
+                <>
+                  <Text style={styles.label}>Fecha y hora de fin:</Text>
+                  <Text style={styles.value}>
+                    {new Date(item.fecha_hora_fin).toLocaleString("es-CO")}
+                  </Text>
+                </>
+              )}
+
+              {item.duracion && (
+                <>
+                  <Text style={styles.label}>Duración:</Text>
+                  <Text style={styles.value}>
+                    {item.duracion} hora(s)
+                  </Text>
+                </>
+              )}
+
+              <Text style={styles.label}>Costo total:</Text>
+              <Text style={[styles.value, styles.cost]}>
+                ${item.costo_calculado ? item.costo_calculado.toFixed(2) : "0.00"}
+              </Text>
+
+              <View style={styles.divider} />
+
+              <Text style={styles.label}>Vehículo:</Text>
+              <Text style={styles.label}>Marca:</Text>
+              <Text style={styles.value}> {item.vehicle?.marca || "No disponible"} </Text>
+              <Text style={styles.label}>Modelo:</Text>
+              <Text style={styles.value}> {item.vehicle?.modelo || "No disponible"} </Text>
             </View>
           )}
         />
       )}
-      {/* Botón de cerrar sesión reutilizable */}
-      <LogoutButton navigation={navigation} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#d0f5d9", padding: 20 },
-  subtitle: { fontSize: 18, fontWeight: "bold", marginTop: 20, marginBottom: 10 },
-  menu: { flexDirection: "row", justifyContent: "space-around" },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 15,
+  container: {
+    flex: 1,
+    backgroundColor: "#f5f7f4",
+    padding: 16,
+  },
+  subtitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginTop: 20,
+    marginBottom: 10,
     color: "#2e7d32",
+  },
+  menu: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 15,
   },
   empty: {
-    fontSize: 16,
     textAlign: "center",
-    marginTop: 20,
-    color: "#555",
+    fontSize: 16,
+    color: "#666",
+    marginTop: 40,
   },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    backgroundColor: "#fff",
-    padding: 12,
-    marginBottom: 10,
-    borderRadius: 10,
+  card: {
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 12,
     shadowColor: "#000",
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 3,
+    elevation: 3,
   },
-  cell: {
-    fontSize: 14,
-    flex: 1,
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
-  price: {
-    fontWeight: "bold",
+  label: {
+    fontSize: 15,
+    fontWeight: "600",
     color: "#2e7d32",
-    fontSize: 14,
-    textAlign: "right",
+    marginTop: 6,
+  },
+  value: {
+    fontSize: 15,
+    color: "#424242",
+    marginLeft: 4,
+  },
+  estadoText: {
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  cost: {
+    fontWeight: "bold",
+    color: "#1b5e20",
+  },
+  divider: {
+    borderBottomColor: "#c8e6c9",
+    borderBottomWidth: 1,
+    marginVertical: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#e9f7ef",
+  },
+  loadingText: {
+    marginTop: 10,
+    color: "#2e7d32",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  activeStatus: {
+    color: "#2e7d32",
+  },
+  inactiveStatus: {
+    color: "#c62828",
   },
 });
